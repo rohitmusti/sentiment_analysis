@@ -123,8 +123,8 @@ def featurize(args, pos_obj, neg_obj, word2idx, idx2vector, percent):
     print(f"created {len(ids)} test examples")
     np.savez(
         args.clean_test_data,
-        rwtokens=np.array(rwtokens_train),
-        sentiment=np.array(sentiment_train),
+        rwtokens=np.array(rwtokens_test),
+        sentiment=np.array(sentiment_test),
         ids=np.array(ids)
     )
 

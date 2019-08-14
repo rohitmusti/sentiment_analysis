@@ -1,6 +1,51 @@
+import torch
+import torch.utils.data as data
+import numpy as np
+import torch
 import logging
 import os
 from tqdm import tqdm
+
+class netflix_reviews(data.Dataset):
+    def __init__(self, data_path):
+        dataset = np.load(data_path)
+        self.rw_tokens = torch.from_numpy(dataset['rwtokens']).long()
+        self.sentiment = torch.from_numpy(dataset['sentiment'])
+        self.ids = torch.from_numpy(dataset['ids'])
+
+    def __getitem__(self, idx):
+
+        example = (
+            self.ids[idx],
+            self.rw_tokens[idx],
+            self.sentiment[idx]
+        )
+
+        return example
+    
+    def __len__(self):
+        return len(self.ids)
+
+def collate_fn(examples):
+
+    def merge_0d(scalars, dtype=torch.long):
+        return torch.tensor(scalars, dtype=dtype)
+
+    def merge_1d(arrays, dtype=torch.long, pad_value=0, pad_length=54):
+        lengths = [(a != pad_value).sum() for a in arrays]
+        padded = torch.zeros(len(arrays), pad_length, 300, dtype=dtype)
+        for i, seq in enumerate(arrays):
+            end = lengths[i]
+            padded[i, :end,] = seq[:end]
+        return padded, torch.tensor(lengths)
+    
+    ids, rw_tokens, sentiments = zip(*examples)
+
+    ids = merge_0d(ids)
+    rw_tokens, lengths = merge_1d(rw_tokens)
+    sentiments = merge_0d(sentiments, dtype=torch.bool)
+
+    return (ids, rw_tokens, sentiments, lengths)
 
 def data_importer(datapath):
     with open(file=datapath, mode="r", encoding="Windows-1252") as fh:
