@@ -51,7 +51,10 @@ def featurize(args, pos_obj, neg_obj, word2idx, idx2vector, percent):
     test_pos_idx_range = (ceil(percent * len(pos_obj)), len(pos_obj))
     test_neg_idx_range = (ceil(percent * len(neg_obj)), len(neg_obj))
 
-    train_data = []
+    rwtokens_train = []
+    sentiment_train = []
+    ids = []
+    counter = 1
     for line in tqdm(range(train_pos_idx_range[0], train_pos_idx_range[1])):
         new_line = np.zeros([args.review_limit,300])
         for i, word in enumerate(pos_obj[line]):
@@ -61,10 +64,11 @@ def featurize(args, pos_obj, neg_obj, word2idx, idx2vector, percent):
             else:
                 new_line[i] = np.asarray(idx2vector[word2idx[word]])
 
-        train_data.append({
-            'rw_tokens': new_line,
-            'sentiment': True
-        })
+        ids.append(counter)
+        rwtokens_train.append(new_line)
+        sentiment_train.append(True)
+
+        counter += 1
 
     for line in tqdm(range(train_neg_idx_range[0], train_neg_idx_range[1])):
         new_line = np.zeros([args.review_limit,300])
@@ -73,17 +77,22 @@ def featurize(args, pos_obj, neg_obj, word2idx, idx2vector, percent):
                 new_line[i] = np.asarray([np.random.normal(scale=0.1) for _ in range(300)])
             else:
                 new_line[i] = np.asarray(idx2vector[word2idx[word]])
-        train_data.append({
-            'rw_tokens': new_line,
-            'sentiment': True
-        })
+        rwtokens_train.append(new_line)
+        sentiment_train.append(True)
 
-    print(f"created {len(train_data)} train examples")
-    with open(args.clean_train_data, "w") as fh:
-        json.dump(train_data, fh)
+    print(f"created {len(ids)} train examples")
+    np.savez(
+        args.clean_train_data,
+        rwtokens=np.array(rwtokens_train),
+        sentiment=np.array(sentiment_train),
+        ids=np.array(ids)
+    )
 
 
-    test_data = []
+    rwtokens_test = []
+    sentiment_test = []
+    ids = []
+    counter = 1
     for line in tqdm(range(test_pos_idx_range[0], test_pos_idx_range[1])):
         new_line = np.zeros([args.review_limit,300])
         for i, word in enumerate(pos_obj[line]):
@@ -91,10 +100,12 @@ def featurize(args, pos_obj, neg_obj, word2idx, idx2vector, percent):
                 new_line[i] = np.asarray([np.random.normal(scale=0.1) for _ in range(300)])
             else:
                 new_line[i] = np.asarray(idx2vector[word2idx[word]])
-        test_data.append({
-            'rw_tokens': new_line,
-            'sentiment': True
-        })
+
+        ids.append(counter)
+        rwtokens_test.append(new_line)
+        sentiment_test.append(True)
+
+        counter += 1
 
     for line in tqdm(range(test_neg_idx_range[0], test_neg_idx_range[1])):
         new_line = np.zeros([args.review_limit,300])
@@ -103,18 +114,20 @@ def featurize(args, pos_obj, neg_obj, word2idx, idx2vector, percent):
                 new_line[i] = np.asarray([np.random.normal(scale=0.1) for _ in range(300)])
             else:
                 new_line[i] = np.asarray(idx2vector[word2idx[word]])
-        test_data.append({
-            'rw_tokens': new_line,
-            'sentiment': True
-        })
+
+        ids.append(counter)
+        rwtokens_test.append(new_line)
+        sentiment_test.append(True)
+
+        counter += 1
     
-    print(f"created {len(test_data)} test examples")
-    with open(args.clean_test_data, "w") as fh:
-        json.dump(test_data, fh)
-
-
-
-            
+    print(f"created {len(ids)} test examples")
+    np.savez(
+        args.clean_test_data,
+        rwtokens=np.array(rwtokens_train),
+        sentiment=np.array(sentiment_train),
+        ids=np.array(ids)
+    )
 
 def main(args):
     logger = get_logger(logging_dir=args.logging_dir, name="data preprocessing")

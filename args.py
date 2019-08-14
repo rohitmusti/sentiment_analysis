@@ -37,12 +37,12 @@ def _add_common_args(parser):
     parser.add_argument("--clean_train_data",
                         type=str,
                         required=False,
-                        default="./data/clean_train.data",
+                        default="./data/clean_train.npz",
                         help="the cleaned and featurized train data")
     parser.add_argument("--clean_test_data",
                         type=str,
                         required=False,
-                        default="./data/clean_test.data",
+                        default="./data/clean_test.npz",
                         help="the cleaned and featurized test data")
     parser.add_argument("--logging_dir",
                         type=str,
